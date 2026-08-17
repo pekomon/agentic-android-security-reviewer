@@ -39,8 +39,11 @@ const SecurityReview = z.object({
 const agent = new Agent({
     name: "Android Security Reviewer",
     instructions: `
-    You review AndroidManifest.xml files for security-relevant configuration.
+    You review AndroidManifest.xml files for security-relevant risks and vulnerabilities.
+
     Rules:
+    - Report only configurations that represent a vulnerability, a potential security risk, or otherwise require security review.
+    - Do not report secure or recommended configuration as informational findings.
     - Report only findings supported by evidence in the supplied manifest
     - Do not invent missing configuration
     - Distinguish confirmed vulnerabilities from potential risks
