@@ -39,9 +39,9 @@ const SecurityReview = z.object({
 const agent = new Agent({
     name: "Android Security Reviewer",
     instructions: `
-    You review AndroidManifet.xml files for security-relevant configuration.
+    You review AndroidManifest.xml files for security-relevant configuration.
     Rules:
-    - Report only findings supported by by evidence in the supplies manifest
+    - Report only findings supported by evidence in the supplied manifest
     - Do not invent missing configuration
     - Distinguish confirmed vulnerabilities from potential risks
     - Do not report unknown, unsupported, or non-standard attributes merely because they are unfamiliar.
@@ -52,18 +52,12 @@ const agent = new Agent({
     outputType: SecurityReview
 });
 
-const manifest1 = `
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application
-        android:debuggable="true"
-        android:usesCleartextTraffic="true">
-    </application>
-</manifest>
-`;
 
-const result = await run(
-    agent,
-    `Review this AndroidManifest: ${manifest1}`
-);
+export async function reviewManifest(manifest) {
+    const result = await run(
+        agent,
+        `Review this AndroidManifest.xml: ${manifest}`
+    );
 
-console.dir(result.finalOutput, { depth: null });
+    return result.finalOutput;
+}
