@@ -51,9 +51,9 @@ const cases = [
     },
 
     {
-    name: "Exported activity is reported as a potential risk",
+        name: "Exported activity is reported as a potential risk",
 
-    manifest: `
+        manifest: `
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
@@ -63,8 +63,8 @@ const cases = [
 </manifest>
 `,
 
-    expectedCategory: "EXPORTED_COMPONENT",
-    expectedClassification: "POTENTIAL_RISK"
+        expectedCategory: "EXPORTED_COMPONENT",
+        expectedClassification: "POTENTIAL_RISK"
     },
 
     {
@@ -81,7 +81,52 @@ const cases = [
 `,
 
         expectedFindingsCount: 0
-    }
+    },
+
+    {
+        name: "Internet permission alone does not produce a finding",
+
+        manifest: `
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+        <uses-permission android:name="android.permission.INTERNET" />
+
+        <application>
+        </application>
+    </manifest>
+    `,
+
+        expectedFindingsCount: 0
+    },
+
+    {
+        name: "Requesting broad package visibility is reported",
+
+        manifest: `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <application>
+    </application>
+</manifest>
+`,
+
+        expectedCategory: "PERMISSION"
+    },
+
+    {
+        name: "Camera permission alone does not produce a finding",
+
+        manifest: `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application>
+    </application>
+</manifest>
+`,
+
+        expectedFindingsCount: 0
+    },
 ];
 
 let failures = 0;
@@ -108,7 +153,7 @@ for (const testCase of cases) {
                     testCase.expectedClassification === undefined ||
                     finding.classification === testCase.expectedClassification
                 )
-            );
+        );
 
         if (!matchingFinding) {
             passed = false;
@@ -116,7 +161,7 @@ for (const testCase of cases) {
     }
 
     //
- 
+
     //
 
     if (passed) {
@@ -124,7 +169,7 @@ for (const testCase of cases) {
     } else {
         failures++;
         console.log(`FAIL: ${testCase.name}`);
-        console.dir(result, { depth: null});
+        console.dir(result, { depth: null });
     }
 }
 
