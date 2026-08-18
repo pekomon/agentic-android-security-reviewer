@@ -63,39 +63,3 @@ export function parseManifest(manifestXml) {
 
     return ManifestFacts.parse(facts)
 }
-
-//
-// For testing purposes
-//
-
-const manifest = `
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <application>
-        <activity
-            android:name=".MainActivity"
-            android:exported="true" />
-
-        <activity
-            android:name=".InternalActivity"
-            android:exported="false" />
-
-        <service
-            android:name=".SyncService"
-            android:exported="true"
-            android:permission="com.example.SYNC" />
-
-        <receiver
-            android:name=".BootReceiver" />
-
-        <provider
-            android:name=".DataProvider"
-            android:exported="false" />
-    </application>
-
-</manifest>
-</manifest>
-`;
-
-const result = parseManifest(manifest);
-console.dir(result, { depth: null });
