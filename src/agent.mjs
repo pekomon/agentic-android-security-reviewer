@@ -1,42 +1,7 @@
 import { Agent, run} from "@openai/agents";
-import { z } from "zod";
 
 import { inspectManifestTool } from "./manifest-tool.mjs";
-
-// First guess of what output will look like 
-// This may later change
-const Finding = z.object({
-    category: z.enum([
-        "EXPORTED_COMPONENT",
-        "DEBUG_CONFIGURATION",
-        "CLEARTEXT_TRAFFIC",
-        "PERMISSION",
-        "APPLICATION_CONFIGURATION",
-        "OTHER"
-    ]),
-    severity: z.enum([
-        "INFO",
-        "LOW",
-        "MEDIUM",
-        "HIGH",
-        "CRITICAL"
-    ]),
-    classification: z.enum([
-        "VULNERABILITY",
-        "POTENTIAL_RISK",
-        "INFORMATIONAL"
-    ]),
-
-    title: z.string(),
-    description: z.string(),
-    evidence: z.string(),
-    recommendation: z.string(),
-    confidence: z.number().min(0).max(1)
-});
-
-const SecurityReview = z.object({
-    findings: z.array(Finding)
-});
+import { SecurityReview } from "./security-review.mjs";
 
 const agent = new Agent({
     name: "Android Security Reviewer",
