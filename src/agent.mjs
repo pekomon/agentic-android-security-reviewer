@@ -69,12 +69,14 @@ const agent = new Agent({
     outputType: SecurityReview
 });
 
-
-export async function reviewManifest(manifest) {
-    const result = await run(
+export async function runManifestReview(manifest) {
+    return run(
         agent,
         `Review this AndroidManifest.xml: ${manifest}`
-    );
+    )
+}
 
+export async function reviewManifest(manifest) {
+    const result = await runManifestReview(manifest)
     return result.finalOutput;
 }
