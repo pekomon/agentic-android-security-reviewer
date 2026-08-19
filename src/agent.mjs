@@ -1,8 +1,10 @@
 import { Agent, run} from "@openai/agents";
 import { z } from "zod";
 
+import { inspectManifestTool } from "./manifest-tool.mjs";
+
 // First guess of what output will look like 
-// This may later
+// This may later change
 const Finding = z.object({
     category: z.enum([
         "EXPORTED_COMPONENT",
@@ -41,6 +43,10 @@ const agent = new Agent({
     instructions: `
     You review AndroidManifest.xml files for security-relevant risks and vulnerabilities.
 
+    Always use the inspect_manifest tool to obtain manifest facts before performing security analysis.
+
+    Base findings on the facts returned by the tool rather than parsing or interpreting the XML directly.
+
     Rules:
     - Report only configurations that represent a vulnerability, a potential security risk, or otherwise require security review.
     - Do not report secure or recommended configuration as informational findings.
@@ -51,7 +57,15 @@ const agent = new Agent({
     - Report a configuration only when its security relevance can be established from known Android platform semantics or supplied evidence.
     - Use OTHER only when no defined category fits
     - If there are no relevant findings, return an empty array
+
+    Permission rules:
+    - Do not report a permission merely because it grants access to a capability.
+    - Common permissions such as INTERNET or CAMERA are not findings by themselves.
+    - Report a permission only when the permission declaration itself is unusually broad,
+    security-sensitive in a way that requires review, or other supplied evidence establishes a risk.
+    - Treat QUERY_ALL_PACKAGES as requiring review because it grants broad package visibility.
     `,
+    tools: [inspectManifestTool],
     outputType: SecurityReview
 });
 
