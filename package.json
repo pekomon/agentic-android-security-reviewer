@@ -2,8 +2,10 @@
   "name": "agentic-android-security-reviewer",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+ "scripts": {
+    "test": "node --test",
+    "eval": "node evals/manifest-cases.mjs",
+    "eval:tools": "node evals/tool-use.mjs"
   },
   "keywords": [],
   "author": "",
