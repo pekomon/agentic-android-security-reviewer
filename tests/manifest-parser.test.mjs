@@ -109,13 +109,15 @@ test("parses multiple activities", () => {
                 type: "ACTIVITY",
                 name: ".MainActivity",
                 exported: true,
-                permission: null
+                permission: null,
+                intentFilters: []
             },
             {
                 type: "ACTIVITY",
                 name: ".InternalActivity",
                 exported: false,
-                permission: null
+                permission: null,
+                intentFilters: []
             }
         ]
     );
@@ -206,4 +208,40 @@ test("returns empty components for empty application", () => {
     const result = parseManifest(manifest);
 
     assert.deepEqual(result.components, []);
+});
+
+test("parses intent filters", () => {
+    const manifest = `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".DeepLinkActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+`;
+
+    const result = parseManifest(manifest);
+
+    assert.deepEqual(
+        result.components[0].intentFilters,
+        [
+            {
+                actions: [
+                    "android.intent.action.VIEW"
+                ],
+                categories: [
+                    "android.intent.category.DEFAULT",
+                    "android.intent.category.BROWSABLE"
+                ]
+            }
+        ]
+    );
 });

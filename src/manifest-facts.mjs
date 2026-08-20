@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const IntentFilterFacts = z.object({
+    actions: z.array(z.string()),
+    categories: z.array(z.string())
+})
+
 export const ManifestFacts = z.object({
     application: z.object({
         debuggable: z.boolean().nullable(),
@@ -16,7 +21,8 @@ export const ManifestFacts = z.object({
             ]),
             name: z.string(),
             exported: z.boolean().nullable(),
-            permission: z.string().nullable()
+            permission: z.string().nullable(),
+            intentFilters: z.array(IntentFilterFacts)
         })
     ),
 

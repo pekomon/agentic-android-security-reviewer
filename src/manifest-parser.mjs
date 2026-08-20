@@ -22,13 +22,24 @@ function parseBoolean(value) {
     return value === "true"
 }
 
+function parseIntentFilters(component) {
+    return asArray(component["intent-filter"]).map(intentFilter => ({
+        actions: asArray(intentFilter.action).map(
+            action => action["android:name"]
+        ),
+        categories: asArray(intentFilter.category).map(
+            category => category["android:name"]
+        )
+    }))
+}
 
 function parseComponents(application, xmlName, type) {
     return asArray(application[xmlName]).map(component => ({
         type,
         name: component["android:name"],
         exported: parseBoolean(component["android:exported"]),
-        permission: component["android:permission"] ?? null
+        permission: component["android:permission"] ?? null,
+        intentFilters: parseIntentFilters(component)
     }));
 }
 
