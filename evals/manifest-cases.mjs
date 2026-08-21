@@ -127,6 +127,31 @@ const cases = [
 
         expectedFindingsCount: 0
     },
+
+    {
+        name: "Browsable exported activity is reported as a potential risk",
+
+        manifest: `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".DeepLinkActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+
+        </activity>
+    </application>
+</manifest>
+`,
+        expectedFindingsCount: 1,
+        expectedCategory: "EXPORTED_COMPONENT",
+        expectedClassification: "POTENTIAL_RISK"
+}
 ];
 
 let failures = 0;
@@ -160,12 +185,9 @@ for (const testCase of cases) {
         }
     }
 
-    //
-
-    //
-
     if (passed) {
         console.log(`PASS: ${testCase.name}`);
+        //console.dir(result, { depth: null });
     } else {
         failures++;
         console.log(`FAIL: ${testCase.name}`);

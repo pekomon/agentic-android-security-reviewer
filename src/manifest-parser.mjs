@@ -22,6 +22,17 @@ function parseBoolean(value) {
     return value === "true"
 }
 
+function parseIntentData(intentFilter) {
+    return asArray(intentFilter.data).map(data => ({
+        scheme: data["android:scheme"] ?? null,
+        host: data["android:host"] ?? null,
+        path: data["android:path"] ?? null,
+        pathPrefix: data["android:pathPrefix"] ?? null,
+        pathPattern: data["android:pathPattern"] ?? null,
+        mimeType: data["android:mimeType"] ?? null,
+    }));
+}
+
 function parseIntentFilters(component) {
     return asArray(component["intent-filter"]).map(intentFilter => ({
         actions: asArray(intentFilter.action).map(
@@ -29,7 +40,8 @@ function parseIntentFilters(component) {
         ),
         categories: asArray(intentFilter.category).map(
             category => category["android:name"]
-        )
+        ),
+        data: parseIntentData(intentFilter)
     }))
 }
 

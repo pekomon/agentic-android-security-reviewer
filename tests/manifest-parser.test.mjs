@@ -240,8 +240,75 @@ test("parses intent filters", () => {
                 categories: [
                     "android.intent.category.DEFAULT",
                     "android.intent.category.BROWSABLE"
-                ]
+                ],
+                data: []
             }
         ]
+    );
+});
+
+test("parses intent filter data", () => {
+    const manifest = `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name=".DeepLinkActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="example.com"
+                    android:pathPrefix="/login"
+                    android:mimeType="text/plain" />
+            </intent-filter>
+
+        </activity>
+    </application>
+</manifest>
+`;
+
+    const result = parseManifest(manifest);
+
+    assert.deepEqual(
+        result.components[0].intentFilters[0].data,
+        [
+            {
+                scheme: "https",
+                host: "example.com",
+                path: null,
+                pathPrefix: "/login",
+                pathPattern: null,
+                mimeType: "text/plain"
+            }
+        ]
+    );
+});
+
+test("parses multiple intent filter data elements", () => {
+    const manifest = `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity android:name=".DeepLinkActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <data android:scheme="https" android:host="example.com" />
+                <data android:scheme="myapp" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+`;
+
+    const result = parseManifest(manifest);
+
+    assert.equal(
+        result.components[0].intentFilters[0].data.length,
+        2
     );
 });
