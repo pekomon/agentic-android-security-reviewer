@@ -2,7 +2,7 @@
 
 An experimental AI-native security review agent for Android applications.
 
-The project explores production-oriented agentic engineering in a security context: deterministic tool use, structured outputs, evidence-backed reasoning, behavioral evals, and explicit testing of agent behavior.
+The project explores production-oriented agentic engineering in a security context: deterministic tool use, MCP integration, structured outputs, evidence-backed reasoning, behavioral evals, and explicit testing of agent behavior.
 
 The current scope is deliberately small: analyze `AndroidManifest.xml` and produce structured security findings backed by manifest evidence.
 
@@ -13,16 +13,22 @@ The system separates deterministic fact extraction from probabilistic security r
 ```text
 AndroidManifest.xml
         ↓
-inspect_manifest tool
+Security Review Agent
+        ↓
+MCP tool call: inspect_manifest
+        ↓
+Android Security MCP Server
         ↓
 deterministic XML parser
         ↓
 ManifestFacts
         ↓
-security reasoning agent
+Security Review Agent
         ↓
 structured SecurityReview
 ```
+
+The MCP server exposes deterministic Android manifest inspection as a reusable capability.
 
 The parser is responsible for extracting facts such as:
 
@@ -35,7 +41,29 @@ The parser is responsible for extracting facts such as:
 
 The agent reasons about those facts and produces structured findings with category, severity, classification, evidence, recommendation, and confidence.
 
-This separation keeps deterministic work out of the language model and makes the system easier to test, evaluate, and debug.
+This separation keeps deterministic work out of the language model and makes the system easier to test, evaluate, reuse, and debug.
+
+## Why MCP?
+
+The manifest parser does not inherently need MCP.
+
+If the capability were used only inside this application, a local function tool would be simpler.
+
+MCP is used here to explore a different architectural property: exposing deterministic Android security inspection through a standard protocol so that it is not coupled to one agent implementation.
+
+```text
+Security Review Agent ──┐
+                        │
+Codex / MCP client ─────┼──> Android Security MCP Server
+                        │           ↓
+Other MCP clients ──────┘     inspect_manifest
+                                    ↓
+                              parseManifest()
+```
+
+The current security review agent consumes the same `inspect_manifest` capability through MCP.
+
+The MCP server can also be discovered and invoked independently by other MCP-compatible clients.
 
 ## Why an agent?
 
@@ -77,13 +105,20 @@ The deterministic parser first establishes facts such as exported state, actions
 
 The project deliberately separates deterministic tests from model-dependent evals.
 
-### Unit tests
+### Unit and integration tests
 
 ```bash
 npm test
 ```
 
-Tests deterministic manifest parsing using Node's built-in test runner.
+Tests deterministic manifest parsing and the MCP server integration using Node's built-in test runner.
+
+The MCP integration test verifies that:
+
+- the MCP server starts successfully
+- `inspect_manifest` is discoverable
+- the tool can be invoked over MCP
+- structured `ManifestFacts` are returned correctly
 
 These tests run automatically in GitHub Actions.
 
@@ -103,7 +138,7 @@ Checks security behavior across known manifest cases, including:
 - broad package visibility
 - browsable deep-link exposure
 
-Behavioral evals protect against regressions when prompts, tools, or fact schemas change.
+Behavioral evals protect against regressions when prompts, tools, transport mechanisms, or fact schemas change.
 
 ### Tool-use eval
 
@@ -114,6 +149,24 @@ npm run eval:tools
 Verifies that the agent actually uses the `inspect_manifest` tool rather than bypassing the intended architecture.
 
 This tests the agent workflow itself, not only the final answer.
+
+### GitHub Actions
+
+Deterministic tests run automatically on pushes and pull requests.
+
+Model-dependent agent evals are intentionally separated into a manually triggered GitHub Actions workflow because they require an API key, incur model usage, and are probabilistic.
+
+```text
+push / pull request
+        ↓
+deterministic tests
+
+manual Agent Evals workflow
+        ↓
+behavioral evals
+        +
+tool-use eval
+```
 
 ## Engineering approach
 
@@ -135,26 +188,31 @@ Instead of accepting that implicit XML interpretation, the fact model and parser
 
 This keeps conclusions traceable to tool-provided evidence.
 
+A similar principle applies to the MCP integration: protocol and transport concerns are kept outside the deterministic parser. The MCP server acts as an adapter around the existing domain capability rather than moving parsing or security logic into the protocol layer.
+
 ## Current status
 
 Implemented:
 
 - Android manifest fact model
 - deterministic XML parser
-- OpenAI Agents SDK function tool
 - structured security review output
 - exported component analysis
 - permission-related behavior
 - intent-filter and deep-link facts
+- MCP server exposing `inspect_manifest`
+- OpenAI Agents SDK MCP client integration
+- structured MCP tool output
 - deterministic unit tests
+- MCP integration test
 - behavioral LLM evals
 - tool-use eval
 - GitHub Actions CI for deterministic tests
+- manually triggered GitHub Actions workflow for agent evals
 
 Planned exploration:
 
 - tracing and failure analysis
-- MCP-based tool integration
 - broader Android security inspection
 - model/provider abstraction
 - agent orchestration where justified by the problem
@@ -188,6 +246,34 @@ npm run eval:tools
 ```
 
 Agent evals require an OpenAI API key configured through the environment.
+
+## Inspecting the MCP server
+
+The MCP server can be explored independently using the MCP Inspector.
+
+Start the Inspector:
+
+```bash
+npx @modelcontextprotocol/inspector node mcp/server.mjs
+```
+
+The server exposes:
+
+```text
+inspect_manifest
+```
+
+The tool accepts an Android manifest document and returns structured `ManifestFacts`.
+
+The available tools can also be inspected from the command line:
+
+```bash
+npx @modelcontextprotocol/inspector --cli \
+  node mcp/server.mjs \
+  --method tools/list
+```
+
+This demonstrates that the manifest inspection capability can be discovered independently of the security review agent.
 
 ## Project scope
 
