@@ -2,7 +2,7 @@
   "name": "agentic-android-security-reviewer",
   "version": "1.0.0",
   "main": "index.js",
- "scripts": {
+  "scripts": {
     "test": "node --test",
     "eval": "node evals/manifest-cases.mjs",
     "eval:tools": "node evals/tool-use.mjs"
@@ -12,6 +12,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@modelcontextprotocol/client": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "@openai/agents": "^0.16.0",
     "dotenv": "^17.4.2",
     "fast-xml-parser": "^5.11.0",
