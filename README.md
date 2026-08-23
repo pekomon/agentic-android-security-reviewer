@@ -275,6 +275,88 @@ npx @modelcontextprotocol/inspector --cli \
 
 This demonstrates that the manifest inspection capability can be discovered independently of the security review agent.
 
+## Trying the MCP server with Codex
+
+The repository includes a project-local Codex MCP configuration:
+
+```text
+.codex/config.toml
+```
+
+It registers the Android security MCP server:
+
+```toml
+[mcp_servers.android-security]
+command = "node"
+args = ["mcp/server.mjs"]
+```
+
+After cloning the repository and installing dependencies:
+
+```bash
+npm ci
+```
+
+start Codex from the repository root:
+
+```bash
+codex
+```
+
+Codex may require the repository to be trusted before project-local configuration is loaded.
+
+The configured MCP server exposes the `inspect_manifest` tool directly to Codex.
+
+For example, ask Codex:
+
+```text
+Use the android-security MCP server to inspect this AndroidManifest.xml.
+Do not analyze the XML yourself. Show only the deterministic facts returned
+by inspect_manifest.
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application android:debuggable="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" />
+    </application>
+</manifest>
+```
+
+A successful invocation is visible in Codex as an MCP tool call similar to:
+
+```text
+Called
+└ android-security.inspect_manifest(...)
+```
+
+and returns structured manifest facts such as:
+
+```json
+{
+  "application": {
+    "debuggable": true,
+    "usesCleartextTraffic": null
+  },
+  "components": [
+    {
+      "type": "ACTIVITY",
+      "name": ".MainActivity",
+      "exported": true,
+      "permission": null,
+      "intentFilters": []
+    }
+  ],
+  "permissions": [
+    "android.permission.INTERNET"
+  ]
+}
+```
+
+This demonstrates that `inspect_manifest` is not coupled to the security review agent. The same deterministic Android inspection capability can be consumed by another MCP client without changing the parser or MCP server.
+
 ## Project scope
 
 The project intentionally starts narrow.

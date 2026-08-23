@@ -1,0 +1,3 @@
+[mcp_servers.android-security]
+command = "node"
+args = ["mcp/server.mjs"]
