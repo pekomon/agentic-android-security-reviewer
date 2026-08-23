@@ -51,7 +51,9 @@ export async function runManifestReview(manifest) {
 
         return await run(
             agent,
-            `Review this AndroidManifest.xml: ${manifest}`
+            `Review this AndroidManifest.xml: ${manifest}`, {
+                workflowName: "Android Manifest Security Review"
+            }
         );
     } finally {
         await manifestMcpServer.close();
