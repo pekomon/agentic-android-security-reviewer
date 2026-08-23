@@ -2,13 +2,31 @@
 
 An experimental AI-native security review agent for Android applications.
 
-The project explores production-oriented agentic engineering in a security context: deterministic tool use, MCP integration, structured outputs, evidence-backed reasoning, behavioral evals, and explicit testing of agent behavior.
+The project explores production-oriented agentic engineering in a security
+context: deterministic tool use, MCP integration, structured outputs,
+evidence-backed reasoning, agent behavior evals, and explicit testing of
+agent behavior.
 
-The current scope is deliberately small: analyze `AndroidManifest.xml` and produce structured security findings backed by manifest evidence.
+The current scope is deliberately small: analyze `AndroidManifest.xml` and
+produce structured security findings backed by manifest evidence.
+
+## What this demonstrates
+
+- Agent design that separates deterministic tools from probabilistic reasoning
+- MCP server integration with a reusable security inspection capability
+- Structured model output with evidence-backed findings
+- Agent behavior evals for model-dependent behavior
+- Tool-use evals that verify the intended agent architecture
+- Deterministic parser and MCP integration tests
+- GitHub Actions coverage for deterministic tests and manually triggered agent
+  evals
+- Reuse of the same MCP capability from both the security review agent and
+  external MCP clients
 
 ## Architecture
 
-The system separates deterministic fact extraction from probabilistic security reasoning.
+The system separates deterministic fact extraction from probabilistic security
+reasoning.
 
 ```text
 AndroidManifest.xml
@@ -28,58 +46,36 @@ Security Review Agent
 structured SecurityReview
 ```
 
-The MCP server exposes deterministic Android manifest inspection as a reusable capability.
+The MCP server exposes deterministic Android manifest inspection as a reusable
+capability. The parser extracts facts such as application security
+configuration, requested permissions, exported Android components, component
+permissions, intent filters, and deep-link data constraints.
 
-The parser is responsible for extracting facts such as:
+The agent reasons about those facts and produces structured findings with
+category, severity, classification, evidence, recommendation, and confidence.
+This keeps deterministic work out of the language model and makes the system
+easier to test, evaluate, reuse, and debug.
 
-- application security configuration
-- requested permissions
-- exported Android components
-- component permissions
-- intent filters
-- deep-link data constraints
+## Implemented features
 
-The agent reasons about those facts and produces structured findings with category, severity, classification, evidence, recommendation, and confidence.
+- Android manifest fact model
+- Deterministic XML parser
+- Structured security review output
+- Exported component analysis
+- Permission-related behavior
+- Intent-filter and deep-link facts
+- MCP server exposing `inspect_manifest`
+- OpenAI Agents SDK MCP client integration
+- Structured MCP tool output
+- Deterministic unit tests
+- MCP integration test
+- Agent behavior evals
+- Tool-use eval
+- GitHub Actions CI for deterministic tests
+- Manually triggered GitHub Actions workflow for agent evals
+- Project-local Codex MCP configuration
 
-This separation keeps deterministic work out of the language model and makes the system easier to test, evaluate, reuse, and debug.
-
-## Why MCP?
-
-The manifest parser does not inherently need MCP.
-
-If the capability were used only inside this application, a local function tool would be simpler.
-
-MCP is used here to explore a different architectural property: exposing deterministic Android security inspection through a standard protocol so that it is not coupled to one agent implementation.
-
-```text
-Security Review Agent ──┐
-                        │
-Codex / MCP client ─────┼──> Android Security MCP Server
-                        │           ↓
-Other MCP clients ──────┘     inspect_manifest
-                                    ↓
-                              parseManifest()
-```
-
-The current security review agent consumes the same `inspect_manifest` capability through MCP.
-
-The MCP server can also be discovered and invoked independently by other MCP-compatible clients.
-
-## Why an agent?
-
-The goal is not to use an LLM to parse XML.
-
-Deterministic code handles facts that can be extracted reliably. The agent is used where interpretation is required, for example:
-
-- distinguishing normal configuration from security-relevant risk
-- deciding when manifest evidence is insufficient
-- assessing exported component exposure
-- interpreting broad permissions
-- reasoning about browsable deep-link surfaces
-
-The agent is instructed to base findings on facts returned by the inspection tool rather than independently interpreting the manifest.
-
-## Example
+## Example security review
 
 A browsable exported activity such as:
 
@@ -97,13 +93,74 @@ A browsable exported activity such as:
 </activity>
 ```
 
-can produce a structured finding indicating that the externally reachable deep-link surface requires review.
+is first converted into deterministic manifest facts. The agent then reasons
+about those facts and can produce a structured finding such as:
 
-The deterministic parser first establishes facts such as exported state, actions, categories, permissions, and URI constraints. The agent then performs the security reasoning.
+```json
+{
+  "findings": [
+    {
+      "category": "EXPORTED_COMPONENT",
+      "severity": "MEDIUM",
+      "classification": "POTENTIAL_RISK",
+      "title": "Exported deep-link activity lacks URI restrictions",
+      "description": "DeepLinkActivity is publicly accessible and handles browsable VIEW intents, but its intent filter declares no scheme, host, or path constraints. Security depends on robust input validation and authorization in the activity.",
+      "evidence": "Activity .DeepLinkActivity has exported=true and a VIEW/DEFAULT/BROWSABLE intent filter with no data elements or permission.",
+      "recommendation": "Restrict the intent filter to required URI schemes, hosts, and paths, and validate all incoming URI data and authorization state before processing.",
+      "confidence": 0.99
+    }
+  ]
+}
+```
+
+The key property is that the reasoning is based on structured facts returned by
+the inspection tool rather than on hidden XML interpretation by the model.
+
+## Why this architecture?
+
+### Deterministic facts before probabilistic reasoning
+
+The goal is not to use an LLM to parse XML.
+
+Deterministic code handles facts that can be extracted reliably. The agent is
+used where interpretation is required, for example:
+
+- distinguishing normal configuration from security-relevant risk
+- deciding when manifest evidence is insufficient
+- assessing exported component exposure
+- interpreting broad permissions
+- reasoning about browsable deep-link surfaces
+
+The agent is instructed to base findings on facts returned by the inspection
+tool rather than independently interpreting the manifest.
+
+### Why MCP?
+
+The manifest parser does not inherently need MCP. If the capability were used
+only inside this application, a local function tool would be simpler.
+
+MCP is used here to expose deterministic Android security inspection through a
+standard protocol, so the capability is not coupled to one agent
+implementation.
+
+```text
+Security Review Agent ──┐
+                        │
+Codex / MCP client ─────┼──> Android Security MCP Server
+                        │           ↓
+Other MCP clients ──────┘     inspect_manifest
+                                    ↓
+                              parseManifest()
+```
+
+The current security review agent consumes `inspect_manifest` through MCP,
+while the same server can also be discovered and invoked independently by
+other MCP-compatible clients.
 
 ## Testing and evals
 
-The project deliberately separates deterministic tests from model-dependent evals.
+The project deliberately separates deterministic tests from model-dependent
+evals.
 
 ### Unit and integration tests
 
@@ -111,7 +168,8 @@ The project deliberately separates deterministic tests from model-dependent eval
 npm test
 ```
 
-Tests deterministic manifest parsing and the MCP server integration using Node's built-in test runner.
+Tests deterministic manifest parsing and the MCP server integration using
+Node's built-in test runner.
 
 The MCP integration test verifies that:
 
@@ -122,7 +180,7 @@ The MCP integration test verifies that:
 
 These tests run automatically in GitHub Actions.
 
-### Behavioral evals
+### Agent behavior evals
 
 ```bash
 npm run eval
@@ -138,7 +196,8 @@ Checks security behavior across known manifest cases, including:
 - broad package visibility
 - browsable deep-link exposure
 
-Behavioral evals protect against regressions when prompts, tools, transport mechanisms, or fact schemas change.
+These evals protect against regressions when prompts, tools, transport
+mechanisms, or fact schemas change.
 
 ### Tool-use eval
 
@@ -146,15 +205,18 @@ Behavioral evals protect against regressions when prompts, tools, transport mech
 npm run eval:tools
 ```
 
-Verifies that the agent actually uses the `inspect_manifest` tool rather than bypassing the intended architecture.
+Verifies that the agent actually uses the `inspect_manifest` tool rather than
+bypassing the intended architecture.
 
-This tests the agent workflow itself, not only the final answer.
+This tests the workflow itself, not only the final answer.
 
 ### GitHub Actions
 
 Deterministic tests run automatically on pushes and pull requests.
 
-Model-dependent agent evals are intentionally separated into a manually triggered GitHub Actions workflow because they require an API key, incur model usage, and are probabilistic.
+Model-dependent agent evals are intentionally separated into a manually
+triggered GitHub Actions workflow because they require an API key, incur model
+usage, and are probabilistic.
 
 ```text
 push / pull request
@@ -163,7 +225,7 @@ deterministic tests
 
 manual Agent Evals workflow
         ↓
-behavioral evals
+agent behavior evals
         +
 tool-use eval
 ```
@@ -180,42 +242,19 @@ probabilistic reasoning
 structured, evidence-backed output
 ```
 
-One example emerged while adding intent-filter support.
+One example emerged while adding intent-filter support. After exposing actions
+and categories to the agent, the model correctly recognized a browsable
+deep-link surface but initially reasoned about missing URI constraints that
+were not yet represented in the tool output.
 
-After exposing actions and categories to the agent, the model correctly recognized a browsable deep-link surface but initially reasoned about missing URI constraints that were not yet represented in the tool output.
+Instead of accepting that implicit XML interpretation, the fact model and
+parser were expanded to include intent-filter `<data>` elements. This keeps
+conclusions traceable to tool-provided evidence.
 
-Instead of accepting that implicit XML interpretation, the fact model and parser were expanded to include intent-filter `<data>` elements.
-
-This keeps conclusions traceable to tool-provided evidence.
-
-A similar principle applies to the MCP integration: protocol and transport concerns are kept outside the deterministic parser. The MCP server acts as an adapter around the existing domain capability rather than moving parsing or security logic into the protocol layer.
-
-## Current status
-
-Implemented:
-
-- Android manifest fact model
-- deterministic XML parser
-- structured security review output
-- exported component analysis
-- permission-related behavior
-- intent-filter and deep-link facts
-- MCP server exposing `inspect_manifest`
-- OpenAI Agents SDK MCP client integration
-- structured MCP tool output
-- deterministic unit tests
-- MCP integration test
-- behavioral LLM evals
-- tool-use eval
-- GitHub Actions CI for deterministic tests
-- manually triggered GitHub Actions workflow for agent evals
-
-Planned exploration:
-
-- tracing and failure analysis
-- broader Android security inspection
-- model/provider abstraction
-- agent orchestration where justified by the problem
+The same principle applies to the MCP integration: protocol and transport
+concerns are kept outside the deterministic parser. The MCP server acts as an
+adapter around the existing domain capability rather than moving parsing or
+security logic into the protocol layer.
 
 ## Running locally
 
@@ -233,7 +272,7 @@ Run deterministic tests:
 npm test
 ```
 
-Run behavioral evals:
+Run agent behavior evals:
 
 ```bash
 npm run eval
@@ -247,7 +286,15 @@ npm run eval:tools
 
 Agent evals require an OpenAI API key configured through the environment.
 
-## Inspecting the MCP server
+## Using the MCP server from clients
+
+The `android-security` MCP server uses standard MCP over stdio and exposes the
+`inspect_manifest` tool.
+
+The server itself is client-agnostic. Different clients only need to configure
+how the server process is launched.
+
+### MCP Inspector
 
 The MCP server can be explored independently using the MCP Inspector.
 
@@ -257,14 +304,6 @@ Start the Inspector:
 npx @modelcontextprotocol/inspector node mcp/server.mjs
 ```
 
-The server exposes:
-
-```text
-inspect_manifest
-```
-
-The tool accepts an Android manifest document and returns structured `ManifestFacts`.
-
 The available tools can also be inspected from the command line:
 
 ```bash
@@ -273,9 +312,13 @@ npx @modelcontextprotocol/inspector --cli \
   --method tools/list
 ```
 
-This demonstrates that the manifest inspection capability can be discovered independently of the security review agent.
+A successful result includes:
 
-## Trying the MCP server with Codex
+```text
+inspect_manifest
+```
+
+### Codex
 
 The repository includes a project-local Codex MCP configuration:
 
@@ -303,11 +346,11 @@ start Codex from the repository root:
 codex
 ```
 
-Codex may require the repository to be trusted before project-local configuration is loaded.
+Codex may require the repository to be trusted before project-local
+configuration is loaded.
 
-The configured MCP server exposes the `inspect_manifest` tool directly to Codex.
-
-For example, ask Codex:
+The configured MCP server exposes `inspect_manifest` directly to Codex. For
+example:
 
 ```text
 Use the android-security MCP server to inspect this AndroidManifest.xml.
@@ -355,10 +398,51 @@ and returns structured manifest facts such as:
 }
 ```
 
-This demonstrates that `inspect_manifest` is not coupled to the security review agent. The same deterministic Android inspection capability can be consumed by another MCP client without changing the parser or MCP server.
+This demonstrates that `inspect_manifest` is not coupled to the security
+review agent.
 
-## Project scope
+### Other MCP clients
+
+The same server can be consumed by other MCP-compatible clients, such as
+Claude Code, by configuring the client to launch:
+
+```text
+node mcp/server.mjs
+```
+
+The exposed tool is:
+
+```text
+inspect_manifest
+```
+
+No server-side changes are required when switching MCP clients. Only the
+client-side MCP configuration is different.
+
+This portability is one of the reasons MCP is used in the project: the
+deterministic Android inspection capability can be shared across different
+agent and developer-tool environments without coupling the parser to a
+specific client.
+
+## Limitations and scope
 
 The project intentionally starts narrow.
 
-The goal is not to build a complete Android vulnerability scanner immediately, but to use a constrained security problem to explore reliable agentic software engineering patterns incrementally.
+It currently focuses on `AndroidManifest.xml` and does not attempt to provide
+complete Android application security analysis. It does not yet inspect source
+code, dependency graphs, APK contents, runtime behavior, network traffic, or
+external vulnerability databases.
+
+The agent is also probabilistic by design. Deterministic fact extraction,
+structured schemas, evals, and tool-use verification reduce risk, but they do
+not make model reasoning deterministic.
+
+The goal is not to build a complete Android vulnerability scanner immediately,
+but to use a constrained security problem to explore reliable agentic software
+engineering patterns incrementally.
+
+## Planned exploration
+
+- tracing and failure analysis
+- broader Android security inspection
+- richer evidence collection
