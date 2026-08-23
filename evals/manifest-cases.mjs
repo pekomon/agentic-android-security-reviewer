@@ -37,6 +37,7 @@ const cases = [
 </manifest>
 `,
         expectedCategory: "DEBUG_CONFIGURATION",
+        expectedClassification: "POTENTIAL_RISK"
     },
 
     {

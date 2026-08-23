@@ -29,6 +29,10 @@ function createAgent() {
         - Use OTHER only when no defined category fits
         - If there are no relevant findings, return an empty array
 
+        Debug configuration rules:
+        - Treat android:debuggable=true as a potential risk unless supplied evidence establishes that the manifest represents a production or release build.
+        - Do not classify debug configuration as a confirmed vulnerability based on the manifest flag alone.
+
         Permission rules:
         - Do not report a permission merely because it grants access to a capability.
         - Common permissions such as INTERNET or CAMERA are not findings by themselves.
