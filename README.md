@@ -71,6 +71,7 @@ easier to test, evaluate, reuse, and debug.
 - MCP integration test
 - Agent behavior evals
 - Tool-use eval
+- Agent workflow tracing and failure analysis
 - GitHub Actions CI for deterministic tests
 - Manually triggered GitHub Actions workflow for agent evals
 - Project-local Codex MCP configuration
@@ -255,6 +256,74 @@ The same principle applies to the MCP integration: protocol and transport
 concerns are kept outside the deterministic parser. The MCP server acts as an
 adapter around the existing domain capability rather than moving parsing or
 security logic into the protocol layer.
+
+## Tracing and failure analysis
+
+Agent runs are traced through the OpenAI Agents SDK so that model calls, MCP
+tool use, tool outputs, and final structured results can be inspected as one
+workflow.
+
+This makes it possible to distinguish different failure modes:
+
+```text
+incorrect facts
+    ↓
+parser / tool / schema problem
+
+correct facts, incorrect finding
+    ↓
+agent policy / reasoning problem
+
+inspection tool not called
+    ↓
+workflow / orchestration problem
+```
+
+One concrete example was the handling of `android:debuggable="true"`.
+
+A trace showed that the deterministic `inspect_manifest` tool correctly
+returned:
+
+```json
+{
+  "application": {
+    "debuggable": true,
+    "usesCleartextTraffic": null
+  },
+  "components": [],
+  "permissions": []
+}
+```
+
+The agent initially classified this evidence as a confirmed `HIGH`
+`VULNERABILITY`.
+
+The trace made the problem clear: fact extraction was correct, but the agent
+was overclassifying the evidence. A manifest with debugging enabled does not
+by itself establish that the artifact is a production or release build.
+
+The agent policy was therefore refined so that `android:debuggable="true"` is
+treated as a `POTENTIAL_RISK` unless additional evidence establishes release
+or production context.
+
+The corresponding agent behavior eval was also tightened to require the
+`POTENTIAL_RISK` classification.
+
+```text
+observe trace
+    ↓
+identify overclassification
+    ↓
+refine agent policy
+    ↓
+strengthen eval
+    ↓
+prevent regression
+```
+
+This feedback loop is the intended approach for evolving model-dependent
+behavior: use traces to understand failures, improve the smallest responsible
+layer, and convert the discovered behavior into a regression guard.
 
 ## Running locally
 
@@ -443,6 +512,5 @@ engineering patterns incrementally.
 
 ## Planned exploration
 
-- tracing and failure analysis
 - broader Android security inspection
 - richer evidence collection
