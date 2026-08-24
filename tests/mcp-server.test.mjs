@@ -43,7 +43,8 @@ test("MCP server exposes inspect_manifest and returns manifest facts", async () 
         assert.deepEqual(result.structuredContent, {
             application: {
                 debuggable: true,
-                usesCleartextTraffic: null
+                usesCleartextTraffic: null,
+                allowBackup: null
             },
             components: [
                 {

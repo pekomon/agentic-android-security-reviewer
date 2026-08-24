@@ -18,7 +18,8 @@ const IntentFilterFacts = z.object({
 export const ManifestFacts = z.object({
     application: z.object({
         debuggable: z.boolean().nullable(),
-        usesCleartextTraffic: z.boolean().nullable()
+        usesCleartextTraffic: z.boolean().nullable(),
+        allowBackup: z.boolean().nullable()
     }),
 
     components: z.array(

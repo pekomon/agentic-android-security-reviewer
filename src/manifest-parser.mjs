@@ -78,7 +78,8 @@ export function parseManifest(manifestXml) {
     const facts = {
         application: {
             debuggable: parseBoolean(application["android:debuggable"]),
-            usesCleartextTraffic: parseBoolean(application["android:usesCleartextTraffic"])
+            usesCleartextTraffic: parseBoolean(application["android:usesCleartextTraffic"]),
+            allowBackup: parseBoolean(application["android:allowBackup"])
         },
         components,
         permissions

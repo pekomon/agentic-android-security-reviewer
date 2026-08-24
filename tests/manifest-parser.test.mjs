@@ -8,7 +8,8 @@ test("parses application security flags", () => {
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:debuggable="true"
-        android:usesCleartextTraffic="false" />
+        android:usesCleartextTraffic="false"
+        android:allowBackup="true" />
 </manifest>
     `
 
@@ -16,6 +17,8 @@ test("parses application security flags", () => {
 
     assert.equal(result.application.debuggable, true)
     assert.equal(result.application.usesCleartextTraffic, false)
+    assert.equal(result.application.allowBackup, true)
+
 });
 
 test("uses null when application security flags are missing", () => {
@@ -29,6 +32,7 @@ test("uses null when application security flags are missing", () => {
 
     assert.equal(result.application.debuggable, null);
     assert.equal(result.application.usesCleartextTraffic, null);
+    assert.equal(result.application.allowBackup, null);
 });
 
 
