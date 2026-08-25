@@ -33,6 +33,11 @@ function createAgent() {
         - Treat android:debuggable=true as a potential risk unless supplied evidence establishes that the manifest represents a production or release build.
         - Do not classify debug configuration as a confirmed vulnerability based on the manifest flag alone.
 
+        Backup configuration rules:
+        - Treat android:allowBackup=true as a potential risk that requires review, not as a confirmed vulnerability by itself.
+        - Do not assume that backup-enabled applications expose sensitive data, because backup contents may be restricted by configuration not represented in the current manifest facts.
+        - Do not report android:allowBackup=false as a security finding.
+
         Permission rules:
         - Do not report a permission merely because it grants access to a capability.
         - Common permissions such as INTERNET or CAMERA are not findings by themselves.

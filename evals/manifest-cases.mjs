@@ -152,7 +152,30 @@ const cases = [
         expectedFindingsCount: 1,
         expectedCategory: "EXPORTED_COMPONENT",
         expectedClassification: "POTENTIAL_RISK"
-}
+    },
+
+    {
+        name: "Backup-enabled application is reported as a potential risk",
+        manifest: `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:allowBackup="true">
+    </application>
+</manifest>
+    `,
+        expectedCategory: "APPLICATION_CONFIGURATION",
+        expectedClassification: "POTENTIAL_RISK"
+    },
+
+    {
+        name: "Disabled application backup produces no finding",
+        manifest: `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:allowBackup="false">
+    </application>
+</manifest>
+    `,
+        expectedFindingsCount: 0
+},
 ];
 
 let failures = 0;
