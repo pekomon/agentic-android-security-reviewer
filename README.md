@@ -63,6 +63,7 @@ easier to test, evaluate, reuse, and debug.
 - Structured security review output
 - Exported component analysis
 - Permission-related behavior
+- Application configuration analysis, including backup exposure
 - Intent-filter and deep-link facts
 - MCP server exposing `inspect_manifest`
 - OpenAI Agents SDK MCP client integration
@@ -192,6 +193,7 @@ Checks security behavior across known manifest cases, including:
 - clean manifests
 - debug configuration
 - cleartext traffic
+- application backup configuration
 - exported components
 - ordinary permissions that should not create noise
 - broad package visibility
@@ -450,7 +452,8 @@ and returns structured manifest facts such as:
 {
   "application": {
     "debuggable": true,
-    "usesCleartextTraffic": null
+    "usesCleartextTraffic": null,
+    "allowBackup": null
   },
   "components": [
     {
