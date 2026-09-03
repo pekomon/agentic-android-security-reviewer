@@ -1,16 +1,15 @@
 {
   "name": "agentic-android-security-reviewer",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.1.0",
   "scripts": {
     "test": "node --test",
     "eval": "node evals/manifest-cases.mjs",
     "eval:tools": "node evals/tool-use.mjs"
   },
   "keywords": [],
-  "author": "",
+  "author": "Pekomon",
   "license": "ISC",
-  "description": "",
+    "description": "AI-native Android security review agent with deterministic manifest inspection, MCP tool use, structured findings, evals, and tracing.",
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
     "@modelcontextprotocol/server": "^2.0.0",
