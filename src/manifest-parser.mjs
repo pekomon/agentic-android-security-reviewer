@@ -15,11 +15,15 @@ function asArray(value) {
 }
 
 function parseBoolean(value) {
-    if (value === undefined) {
-        return null;
+    if (value === "true") {
+        return true;
     }
 
-    return value === "true"
+    if (value === "false") {
+        return false;
+    }
+
+    return null
 }
 
 function parseIntentData(intentFilter) {

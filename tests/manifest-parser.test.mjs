@@ -15,6 +15,8 @@ test("parses application security flags", () => {
 
     const result = parseManifest(manifest)
 
+    
+
     assert.equal(result.application.debuggable, true)
     assert.equal(result.application.usesCleartextTraffic, false)
     assert.equal(result.application.allowBackup, true)
@@ -315,4 +317,16 @@ test("parses multiple intent filter data elements", () => {
         result.components[0].intentFilters[0].data.length,
         2
     );
+});
+
+test("uses null for unsupported boolean values", () => {
+    const manifest = `
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:debuggable="unexpected" />
+</manifest>
+`;
+
+    const result = parseManifest(manifest);
+
+    assert.equal(result.application.debuggable, null);
 });
