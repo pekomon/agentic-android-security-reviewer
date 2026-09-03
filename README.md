@@ -290,7 +290,8 @@ returned:
 {
   "application": {
     "debuggable": true,
-    "usesCleartextTraffic": null
+    "usesCleartextTraffic": null,
+    "allowBackup": null
   },
   "components": [],
   "permissions": []

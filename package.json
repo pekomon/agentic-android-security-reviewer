@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "Pekomon",
   "license": "ISC",
-    "description": "AI-native Android security review agent with deterministic manifest inspection, MCP tool use, structured findings, evals, and tracing.",
+  "description": "AI-native Android security review agent with deterministic manifest inspection, MCP tool use, structured findings, evals, and tracing.",
   "dependencies": {
     "@modelcontextprotocol/client": "^2.0.0",
     "@modelcontextprotocol/server": "^2.0.0",
