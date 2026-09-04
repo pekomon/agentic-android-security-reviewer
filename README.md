@@ -159,6 +159,15 @@ The current security review agent consumes `inspect_manifest` through MCP,
 while the same server can also be discovered and invoked independently by
 other MCP-compatible clients.
 
+## Local environment
+
+This repo uses direnv for project-scoped development secrets. The committed
+`.envrc` loads `OPENAI_API_KEY` from macOS Keychain through the local
+`keychain` helper.
+
+Run `direnv allow` after reviewing `.envrc`. Use `.envrc.local` for
+machine-specific overrides; it is intentionally gitignored.
+
 ## Testing and evals
 
 The project deliberately separates deterministic tests from model-dependent
